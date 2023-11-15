@@ -5,41 +5,166 @@
 To develop a deep neural network for Malaria infected cell recognition and to analyze the performance.
 
 ## Problem Statement and Dataset
+The Convolutional Neural Network method reduces the likelihood of overfitting by employing data augmentation. Thus, it was found that deep learning-based malaria detection systems outperformed most conventional methods in speed. To distinguish between the images of parasitized and uninfected smear blood cells, a convolutional neural network was created and taught via training. CNN is capable of extracting three types of image features: low-level, mid-level, and high-level features. These functions are used to extract the traditional picture features.
 
 ## Neural Network Model
 
-Include the neural network model diagram.
+<img width="497" alt="image" src="https://github.com/DhivyaShri484/malaria-cell-recognition/assets/94505585/c0477c98-13ea-454b-bf4b-4207ef3d506d">
+
 
 ## DESIGN STEPS
 
 ### STEP 1:
-
+Import tensorflow and preprocessing libraries
 ### STEP 2:
-
+Create an ImageDataGenerator to flow image data
 ### STEP 3:
-
-Write your own steps
+Build the convolutional neural network model and train the model
+### STEP 4:
+Evaluate the model with the testing data
+### STEP 5:
+Fit the model
+### STEP 6:
+Plot the performance plot
 
 ## PROGRAM
+```
+Developed by: DHIVYA SHRI B
+Registered No: 212221230009
+```
+```
+import os
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib.image import imread
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras import utils
+from tensorflow.keras import models
+from sklearn.metrics import classification_report, confusion_matrix
+import tensorflow as tf
 
-Include your code here
+my_data_dir = 'dataset/cell_images'
+os.listdir(my_data_dir)
+test_path = my_data_dir+'/test/'
+train_path = my_data_dir+'/train/'
+os.listdir(train_path)
+len(os.listdir(train_path + '/uninfected/'))
+len(os.listdir(train_path + '/parasitized/'))
+os.listdir(train_path + '/parasitized')[0]
+
+
+para_img = imread(train_path + '/parasitized/' + os.listdir(train_path + '/parasitized')[0])
+para_img.shape
+plt.imshow(para_img)
+
+dim1 = []
+dim2 = []
+for image_filename in os.listdir(test_path + '/uninfected'):
+    img = imread(test_path + '/uninfected' + '/' + image_filename)
+    d1, d2, colors = img.shape
+    dim1.append(d1)
+    dim2.append(d2)
+sns.jointplot(x=dim1, y=dim2)
+
+image_shape = (130, 130, 3)
+image_gen = ImageDataGenerator(
+    rotation_range=20,
+    width_shift_range=0.10,
+    height_shift_range=0.10,
+    rescale=1/255,
+    shear_range=0.1,
+    zoom_range=0.1,
+    horizontal_flip=True,
+    fill_mode='nearest'
+)
+
+image_gen.flow_from_directory(train_path)
+image_gen.flow_from_directory(test_path)
+
+model = models.Sequential([
+    layers.Input((130,130,3)),
+    layers.Conv2D(32,kernel_size=3,activation="relu",padding="same"),
+    layers.MaxPool2D((2,2)),
+    layers.Conv2D(32,kernel_size=3,activation="relu"),
+    layers.MaxPool2D((2,2)),
+    layers.Conv2D(32,kernel_size=3,activation="relu"),
+    layers.MaxPool2D((2,2)),
+    layers.Flatten(),
+    layers.Dense(32,activation="relu"),
+    layers.Dense(1,activation="sigmoid")])
+model.compile(loss='binary_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+train_image_gen = image_gen.flow_from_directory(train_path, target_size=image_shape[:2], color_mode='rgb',
+                                                batch_size=16, class_mode='binary')
+
+train_image_gen.batch_size
+len(train_image_gen.classes)
+train_image_gen.total_batches_seen
+
+test_image_gen = image_gen.flow_from_directory(test_path, target_size=image_shape[:2], color_mode='rgb',
+                                              batch_size=16, class_mode='binary', shuffle=False)
+
+train_image_gen.class_indices
+
+results = model.fit(train_image_gen, epochs=5, validation_data=test_image_gen)
+model.save('cell_model1.h5')
+losses = pd.DataFrame(model.history.history)
+losses.plot()
+model.evaluate(test_image_gen)
+pred_probabilities = model.predict(test_image_gen)
+predictions = pred_probabilities > 0.5
+print(classification_report(test_image_gen.classes, predictions))
+confusion_matrix(test_image_gen.classes, predictions)
+from tensorflow.keras.preprocessing import image
+
+img = image.load_img('new.png')
+img = tf.convert_to_tensor(np.asarray(img))
+img = tf.image.resize(img, (130, 130))
+img = img.numpy()
+
+type(img)
+plt.imshow(img)
+
+x_single_prediction = bool(model.predict(img.reshape(1, 130, 130, 3)) > 0.6)
+print(x_single_prediction)
+
+if x_single_prediction == 1:
+    print("Uninfected")
+else:
+    print("Parasitized")
+```
 
 ## OUTPUT
 
 ### Training Loss, Validation Loss Vs Iteration Plot
 
-Include your plot here
+
+<img width="433" alt="image" src="https://github.com/DhivyaShri484/malaria-cell-recognition/assets/94505585/17a522e3-7e23-42ae-b277-6967654f292b">
+
 
 ### Classification Report
 
-Include Classification Report here
+
+<img width="400" alt="image" src="https://github.com/DhivyaShri484/malaria-cell-recognition/assets/94505585/3395b6a3-3c81-43dd-aa70-f81a8c547caa">
+
 
 ### Confusion Matrix
 
-Include confusion matrix here
+
+<img width="160" alt="image" src="https://github.com/DhivyaShri484/malaria-cell-recognition/assets/94505585/8dbfead1-18a3-4c79-a5f2-a60f9a43c460">
+
 
 ### New Sample Data Prediction
 
-Include your sample cell image input and output of your model.
+
+<img width="237" alt="image" src="https://github.com/DhivyaShri484/malaria-cell-recognition/assets/94505585/ce2159de-2888-4778-bc38-28d42b876c55">
+
 
 ## RESULT
+Thus, a deep neural network for Malaria infected cell recognized and analyzed the performance .
